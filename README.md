@@ -18,6 +18,7 @@ cd rarity-bot/
 
     Poetry:
     `poetry install`
+    `poetry shell`
 
     Pip (in a virtualenv):
     `pip install requirements.txt`

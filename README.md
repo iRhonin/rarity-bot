@@ -49,4 +49,4 @@ To see all options:
 
 ---
 
-I will be happy to answer your questions.
+If you had any issue, [issue tab](https://github.com/iRhonin/rarity-bot/issues) is for you, or you can find contacts on my profile.

@@ -9,33 +9,44 @@ This bot will can do advanture for all of your `Rarity Summonners` as soon as po
 1. Clone this repo and go inside directory:
 
 ```
-    xxx
+git clone https://github.com/iRhonin/rarity-bot.git
+cd rarity-bot/
 ```
 
 2. Install dependencies using Poetry or Pip:
 
-Poetry:
-`poetry install`
+    Poetry:
+    `poetry install`
 
-Pip:
-`pip install requirements.txt`
+    Pip (in a virtualenv):
+    `pip install requirements.txt`
 
-3. Make a copy on `.env_example` and fill your `PRIVATE_KEY` and `ADDRESS` (`PRIVATE_KEY` is only needed to sign transactions):
+3. Make a copy on `.env_example` and fill your `PRIVATE_KEY` and `ADDRESS` (`PRIVATE_KEY` is only needed to sign transactions, you can export it from the metamask):
 
     - `cp .env_example .env`
-    - Fill `PRIVATE_KEY` and `ADDRESS`
+    - Set `PRIVATE_KEY` and `ADDRESS` (DO NOT SHARE YOUR PRIVATE KEY WITH ANYONE)
     - (Optional) Change other variables if needed
 
 ### Usage
 
 To run with all of your summoners:
 
-`python adventure.py`
+`python rarity/adventure.py`
 
 Or with selected ones (If your summoners are 1234 and 4321):
 
-`python adventure.py --summoners 1234 --summoners 4321`
+`python rarity/adventure.py --summoners 1234 --summoners 4321`
 
 ---
 
 If you want to disable automatic level-up, use `--no-lvlup`.
+
+---
+ 
+To see all options:
+
+`python rarity/adventure.py --help`
+
+---
+
+I will be happy to answer your questions.

@@ -16,12 +16,16 @@ cd rarity-bot/
 
 2. Install dependencies using Poetry or Pip:
 
-    Poetry:
-    `poetry install`
-    `poetry shell`
+    - Poetry:
+        ```bash
+        poetry install
+        poetry shell
+        ```
 
-    Pip (in a virtualenv):
-    `pip install requirements.txt`
+    - Pip (in a virtualenv):
+        `pip install requirements.txt`
+
+Note: If you get `fatal error: Python.h: No such file or directory`, you need to install `python3-dev` on Ubuntu (`sudo apt install python3-dev`). Check [this](https://stackoverflow.com/a/21530768/9624798) link for the other distributions.
 
 3. Make a copy on `.env_example` and fill your `PRIVATE_KEY` and `ADDRESS` (`PRIVATE_KEY` is only needed to sign transactions, you can export it from the metamask):
 

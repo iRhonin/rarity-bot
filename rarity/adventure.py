@@ -16,10 +16,10 @@ from utils import (fetch_erc721, format_timedelta, sign_and_send_txn,
 RARITY_ADRRESS = "0xce761d788df608bd21bdd59d6f4b54b2e27f25bb"
 WEB3_RPC = "https://rpc.ftm.tools/"
 EXPLORER = "https://ftmscan.com/"
-SLEEP_BEFORE_CONTINUE = 15
+SLEEP_BEFORE_CONTINUE = 5
 UPDATE_EVERY_SECONDS = 30 * 60
 EXPLORER_APIKEY = "SF7K5UN374SAQ6H2YCFA8MQMRAN58DNFEM"
-MAX_RETRIES = 20
+MAX_RETRIES = 10
 
 COLORS = [
     '\033[95m',
@@ -38,7 +38,7 @@ class Rarity():
     ):
         self.web3_rpc = web3_rpc
         self.summoners_thread_list = []
-        self.summoners = []
+        self.summoners = {}
         self.private_key = private_key
         self.address = Web3.toChecksumAddress(address)
         self.rarity_address = Web3.toChecksumAddress(rarity_address)
@@ -48,6 +48,7 @@ class Rarity():
         self.sleep_before_continue = sleep_before_continue
         self.explorer = explorer
         self.explorer_apikey = explorer_apikey
+        self.remaining_times = {}
 
         if summoners:
             self.summoner_ids = summoners
@@ -79,11 +80,13 @@ class Rarity():
                 abi=self.abi,
                 summoner_id=summoner_id,
             )
-            self.summoners.append(summoner)
+            self.summoners[summoner.summoner_id] = summoner
 
-        self.thread_pool.map(lambda summoner: summoner.adventure(lvl_up), self.summoners)
-        self.thread_pool.close()
-        self.thread_pool.join()
+        while True:
+            for summoner in self.summoners.values():
+                self.remaining_times[summoner.summoner_id] = summoner.adventure(lvl_up)
+
+            sleep(min([*self.remaining_times.values(), UPDATE_EVERY_SECONDS]))
 
 
 class Summoner():
@@ -153,39 +156,39 @@ class Summoner():
             return
 
     def adventure(self, lvl_up=False):
-        while True:
-            remaining_time = self.remaining_time()
-            while self.remaining_time() <= 0:
-                tx_hash = None
-                try:
-                    tx_hash = self.do_adventure()
-                except Exception as ex:
-                    print(ex)
-                finally:
-                    for _ in range(self.max_retries):
-                        sleep(self.sleep_before_continue)
-                        tx = self.web3.eth.getTransaction(tx_hash)
-                        if tx and tx['blockNumber'] is not None:
-                            self.log(f'did an adventure!')
-                            self.data()
-                            if lvl_up:
-                                lvlup_tx_hash = self.lvl_up()
-                                if lvlup_tx_hash is not None:
-                                    for _ in range(self.max_retries):
-                                        sleep(self.sleep_before_continue)
-                                        lvlup_tx = self.web3.eth.getTransaction(lvlup_tx_hash)
-                                        if lvlup_tx and lvlup_tx['blockNumber'] is not None:
-                                            self.data()
-                                            break
-                                        else:
-                                            self.log(f'Level-up TX take too long to confirm! {tx_explorer_link(self.explorer, lvlup_tx_hash)}')
-                            break
-                        else:
-                            self.log(f'Adventure TX take too long to confirm! {tx_explorer_link(self.explorer, tx_hash)}')
+        while self.remaining_time() <= 0:
+            tx_hash = None
+            try:
+                tx_hash = self.do_adventure()
+            except Exception as ex:
+                print(ex)
+            finally:
+                for _ in range(self.max_retries):
+                    sleep(self.sleep_before_continue)
+                    tx = self.web3.eth.getTransaction(tx_hash)
+                    if tx and tx['blockNumber'] is not None:
+                        self.log(f'did an adventure!')
+                        self.data()
+                        break
+                else:
+                    self.log(f'Adventure TX take too long to confirm! {tx_explorer_link(self.explorer, tx_hash)}')
 
-            formated_remaining_time = format_timedelta(remaining_time)
-            self.log(f'is sleeping for {formated_remaining_time[0]} Hours and {formated_remaining_time[1]} Minutes')
-            sleep(min(remaining_time, self.update_every_seconds))
+        if lvl_up:
+            lvlup_tx_hash = self.lvl_up()
+            if lvlup_tx_hash is not None:
+                for _ in range(self.max_retries):
+                    sleep(self.sleep_before_continue)
+                    lvlup_tx = self.web3.eth.getTransaction(lvlup_tx_hash)
+                    if lvlup_tx and lvlup_tx['blockNumber'] is not None:
+                        self.data()
+                        break
+                    else:
+                        self.log(f'Level-up TX take too long to confirm! {tx_explorer_link(self.explorer, lvlup_tx_hash)}')
+
+        remaining_time = self.remaining_time()
+        formated_remaining_time = format_timedelta(remaining_time)
+        self.log(f'is sleeping for {formated_remaining_time[0]} Hours and {formated_remaining_time[1]} Minutes')
+        return remaining_time
 
 
 def adventure(

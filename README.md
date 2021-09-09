@@ -31,11 +31,11 @@ cd rarity-bot/
 
 To run with all of your summoners:
 
-`python adventure.py`
+`python rarity/adventure.py`
 
 Or with selected ones (If your summoners are 1234 and 4321):
 
-`python adventure.py --summoners 1234 --summoners 4321`
+`python rarity/adventure.py --summoners 1234 --summoners 4321`
 
 ---
 

@@ -3,6 +3,7 @@
 This bot will can do advanture for all of your `Rarity Summonners` as soon as possible and level up them automaticlly.
 
 #### USE IT AT YOUR OWN RISK.
+##### Under Developmnet, Please Keep Your Clone Updated. 
 
 ### Installation
 

@@ -42,5 +42,11 @@ Or with selected ones (If your summoners are 1234 and 4321):
 If you want to disable automatic level-up, use `--no-lvlup`.
 
 ---
+ 
+To see all options:
+
+`python rarity/adventure.py --help`
+
+---
 
 I will be happy to answer your questions.

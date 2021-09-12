@@ -10,7 +10,7 @@ from eth_utils import address
 from web3 import Web3
 
 from abis import RARITY_ABI
-from utils import (fetch_erc721, format_timedelta, sign_and_send_txn,
+from utils import (fetch_erc721, format_timedelta, nonce, sign_and_send_txn,
                    tx_explorer_link)
 
 RARITY_ADRRESS = "0xce761d788df608bd21bdd59d6f4b54b2e27f25bb"
@@ -110,9 +110,6 @@ class Summoner():
         color = COLORS[self.summoner_id % len(COLORS)]
         print(f'{color}Summoner #{self.summoner_id}: {msg}')
 
-    def nonce(self):
-        return self.web3.eth.getTransactionCount(self.address)
-
     def next_adventure_in(self):
         return self.contract.functions.adventurers_log(self.summoner_id).call()
 
@@ -132,11 +129,10 @@ class Summoner():
         self.log(f'XP: {data.get("xp")}, Level: {data.get("level")}')
         return data
 
-
     def do_adventure(self):
         try:
             adventure_txn = self.contract.functions.adventure(self.summoner_id).buildTransaction(
-                {"nonce": self.nonce()}
+                {"nonce": nonce(self.web3, self.address)}
             )
             tx_hash = sign_and_send_txn(self.web3, adventure_txn, self.private_key)
             self.log(f'Sending to adventure! {tx_explorer_link(self.explorer, tx_hash)}')
@@ -147,7 +143,7 @@ class Summoner():
     def lvl_up(self):
         try:
             lvlup_txn = self.contract.functions.level_up(self.summoner_id).buildTransaction(
-                {"nonce": self.nonce()}
+                {"nonce": nonce(self.web3, self.address)}
             )
             tx_hash = sign_and_send_txn(self.web3, lvlup_txn, self.private_key)
             self.log(f'Leveling UP! {tx_explorer_link(self.explorer, tx_hash)}')
@@ -182,8 +178,8 @@ class Summoner():
                     if lvlup_tx and lvlup_tx['blockNumber'] is not None:
                         self.data()
                         break
-                    else:
-                        self.log(f'Level-up TX take too long to confirm! {tx_explorer_link(self.explorer, lvlup_tx_hash)}')
+                else:
+                    self.log(f'Level-up TX take too long to confirm! {tx_explorer_link(self.explorer, lvlup_tx_hash)}')
 
         remaining_time = self.remaining_time()
         formated_remaining_time = format_timedelta(remaining_time)

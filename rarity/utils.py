@@ -29,3 +29,6 @@ def sign_and_send_txn(web3, txn, private_key):
     tx_hash = web3.toHex(web3.keccak(signed_txn.rawTransaction))
     return tx_hash
 
+
+def nonce(web3, address):
+    return web3.eth.getTransactionCount(address, 'pending')

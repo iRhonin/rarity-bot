@@ -3,6 +3,7 @@
 This bot will can do advanture for all of your `Rarity Summonners` as soon as possible and level up them automaticlly.
 
 #### USE IT AT YOUR OWN RISK.
+##### Under Developmnet, Please Keep Your Clone Updated. 
 
 ### Installation
 
@@ -15,11 +16,16 @@ cd rarity-bot/
 
 2. Install dependencies using Poetry or Pip:
 
-    Poetry:
-    `poetry install`
+    - Poetry:
+        ```bash
+        poetry install
+        poetry shell
+        ```
 
-    Pip (in a virtualenv):
-    `pip install requirements.txt`
+    - Pip (in a virtualenv):
+        `pip install requirements.txt`
+
+Note: If you get `fatal error: Python.h: No such file or directory`, you need to install `python3-dev` on Ubuntu (`sudo apt install python3-dev`). Check [this](https://stackoverflow.com/a/21530768/9624798) link for the other distributions.
 
 3. Make a copy on `.env_example` and fill your `PRIVATE_KEY` and `ADDRESS` (`PRIVATE_KEY` is only needed to sign transactions, you can export it from the metamask):
 
@@ -49,4 +55,4 @@ To see all options:
 
 ---
 
-I will be happy to answer your questions.
+If you had any issue, [issue tab](https://github.com/iRhonin/rarity-bot/issues) is for you, or you can find contacts on my profile.

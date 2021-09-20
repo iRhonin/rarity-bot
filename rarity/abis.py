@@ -165,9 +165,7 @@ RARITY_ABI = [
     {
         'inputs': [{'internalType': 'uint256', 'name': 'id', 'type': 'uint256'}],
         'name': 'classes',
-        'outputs': [
-            {'internalType': 'string', 'name': 'description', 'type': 'string'}
-        ],
+        'outputs': [{'internalType': 'string', 'name': 'description', 'type': 'string'}],
         'stateMutability': 'pure',
         'type': 'function',
     },

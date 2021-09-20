@@ -80,7 +80,6 @@ class Rarity:
 
         while True:
             for summoner in self.summoners.values():
-                self.remaining_times[summoner.summoner_id] = summoner.adventure(
-                    lvl_up)
+                self.remaining_times[summoner.summoner_id] = summoner.adventure(lvl_up)
 
             sleep(min([*self.remaining_times.values(), UPDATE_EVERY_SECONDS]))

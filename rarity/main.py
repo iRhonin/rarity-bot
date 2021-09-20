@@ -22,8 +22,7 @@ rarity: Rarity = None
 def main(
     address: str = typer.Option(None, envvar='ADDRESS'),
     private_key: str = typer.Option(None, envvar='PRIVATE_KEY'),
-    rarity_address: str = typer.Option(
-        RARITY_ADRRESS, envvar='RARITY_ADRRESS'),
+    rarity_address: str = typer.Option(RARITY_ADRRESS, envvar='RARITY_ADRRESS'),
     summoners: List[int] = typer.Option(None, envvar='SUMMONERS'),
     web3_rpc: str = typer.Option(WEB3_RPC, envvar='WEB3_RPC'),
     max_retries: str = typer.Option(MAX_RETRIES, envvar='MAX_RETRIES'),
@@ -34,8 +33,7 @@ def main(
         SLEEP_BEFORE_CONTINUE, envvar='SLEEP_BEFORE_CONTINUE'
     ),
     explorer: str = typer.Option(EXPLORER, envvar='EXPLORER'),
-    explorer_apikey: str = typer.Option(
-        EXPLORER_APIKEY, envvar='EXPLORER_APIKEY'),
+    explorer_apikey: str = typer.Option(EXPLORER_APIKEY, envvar='EXPLORER_APIKEY'),
 ):
     global rarity
     rarity = Rarity(

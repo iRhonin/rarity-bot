@@ -34,8 +34,7 @@ class Summoner:
         self.private_key = private_key
         self.address = Web3.toChecksumAddress(address)
         self.rarity_address = Web3.toChecksumAddress(rarity_address)
-        self.contract = self.web3.eth.contract(
-            address=self.rarity_address, abi=abi)
+        self.contract = self.web3.eth.contract(address=self.rarity_address, abi=abi)
         self.summoner_id = summoner_id
         self.max_retries = max_retries
         self.update_every_seconds = update_every_seconds
@@ -70,11 +69,8 @@ class Summoner:
             adventure_txn = self.contract.functions.adventure(
                 self.summoner_id
             ).buildTransaction({'nonce': nonce(self.web3, self.address)})
-            tx_hash = sign_and_send_txn(
-                self.web3, adventure_txn, self.private_key)
-            self.log(
-                f'Sending to adventure! {tx_explorer_link(self.explorer, tx_hash)}'
-            )
+            tx_hash = sign_and_send_txn(self.web3, adventure_txn, self.private_key)
+            self.log(f'Sending to adventure! {tx_explorer_link(self.explorer, tx_hash)}')
             return tx_hash
         except web3.exceptions.ContractLogicError:
             self.log('is sleeping!')
@@ -85,8 +81,7 @@ class Summoner:
                 self.summoner_id
             ).buildTransaction({'nonce': nonce(self.web3, self.address)})
             tx_hash = sign_and_send_txn(self.web3, lvlup_txn, self.private_key)
-            self.log(
-                f'Leveling UP! {tx_explorer_link(self.explorer, tx_hash)}')
+            self.log(f'Leveling UP! {tx_explorer_link(self.explorer, tx_hash)}')
             return tx_hash
         except web3.exceptions.ContractLogicError:
             return

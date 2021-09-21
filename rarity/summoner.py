@@ -70,10 +70,10 @@ class Summoner:
                 self.summoner_id
             ).buildTransaction({'nonce': nonce(self.web3, self.address)})
             tx_hash = sign_and_send_txn(self.web3, adventure_txn, self.private_key)
-            self.log(f'Sending to adventure! {tx_explorer_link(self.explorer, tx_hash)}')
+            self.log(f'Going to adventure! {tx_explorer_link(self.explorer, tx_hash)}')
             return tx_hash
         except web3.exceptions.ContractLogicError:
-            self.log('is sleeping!')
+            self.log('Sleeping!')
 
     def lvl_up(self):
         try:
@@ -85,6 +85,9 @@ class Summoner:
             return tx_hash
         except web3.exceptions.ContractLogicError:
             return
+
+    def safe_submit_txn(self, txn, sleep_for=1):
+        pass
 
     def adventure(self, lvl_up=False):
         while self.remaining_time() <= 0:
@@ -98,7 +101,7 @@ class Summoner:
                     sleep(self.sleep_before_continue)
                     tx = self.web3.eth.getTransaction(tx_hash)
                     if tx and tx['blockNumber'] is not None:
-                        self.log(f'did an adventure!')
+                        self.log(f'Did an adventure!')
                         self.data()
                         break
                 else:
@@ -123,6 +126,6 @@ class Summoner:
         remaining_time = self.remaining_time()
         formated_remaining_time = format_timedelta(remaining_time)
         self.log(
-            f'is sleeping for {formated_remaining_time[0]} Hours and {formated_remaining_time[1]} Minutes'
+            f'Sleeping for {formated_remaining_time[0]} Hours and {formated_remaining_time[1]} Minutes'
         )
         return remaining_time

@@ -23,6 +23,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
 rarity = "rarity.main:app"
+
 [tool.black]
 line-length = 90
 skip-string-normalization = true

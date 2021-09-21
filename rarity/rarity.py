@@ -1,4 +1,4 @@
-from time import sleep
+from typing import List
 
 from eth_utils import address
 from web3.main import Web3
@@ -12,6 +12,7 @@ from rarity.constants import SLEEP_BEFORE_CONTINUE
 from rarity.constants import UPDATE_EVERY_SECONDS
 from rarity.constants import WEB3_RPC
 from rarity.summoner import Summoner
+from rarity.types import SummonerNextAdventure
 from rarity.utils import fetch_erc721
 
 
@@ -32,7 +33,7 @@ class Rarity:
     ):
         self.web3_rpc = web3_rpc
         self.summoners_thread_list = []
-        self.summoners = {}
+        self.summoners = []
         self.private_key = private_key
         self.address = Web3.toChecksumAddress(address)
         self.rarity_address = Web3.toChecksumAddress(rarity_address)
@@ -45,29 +46,16 @@ class Rarity:
         self.remaining_times = {}
 
         if summoners:
-            self.summoner_ids = summoners
+            summoner_ids = summoners
         else:
-            self.fetch_summoners()
+            print('Fetching summoners...')
+            summoner_ids = self.fetch_summoners()
+            print(
+                'Found these summoners in the jungle: ',
+                ' '.join([s for s in map(str, summoner_ids)]),
+            )
 
-    def fetch_summoners(self):
-        print('Fetching summoners...')
-        erc721s = fetch_erc721(self.explorer_apikey, self.address)
-        if erc721s is None:
-            print('No summoners found!')
-            return
-
-        self.summoner_ids = [
-            int(s['tokenID'])
-            for s in erc721s
-            if address.is_same_address(s['contractAddress'], self.rarity_address)
-        ]
-        print(
-            'Found these summoners in the jungle: ',
-            ' '.join([s for s in map(str, self.summoner_ids)]),
-        )
-
-    def send_all_to_adventure(self, lvl_up=False):
-        for summoner_id in self.summoner_ids:
+        for summoner_id in summoner_ids:
             summoner = Summoner(
                 web3_rpc=self.web3_rpc,
                 private_key=self.private_key,
@@ -76,10 +64,42 @@ class Rarity:
                 abi=self.abi,
                 summoner_id=summoner_id,
             )
-            self.summoners[summoner.summoner_id] = summoner
+            self.summoners.append(summoner)
 
-        while True:
-            for summoner in self.summoners.values():
-                self.remaining_times[summoner.summoner_id] = summoner.adventure(lvl_up)
+    def fetch_summoners(self):
+        """Fetch Rarity summoners from explorer
 
-            sleep(min([*self.remaining_times.values(), UPDATE_EVERY_SECONDS]))
+        Returns:
+            [Sumomoner Ids]: An array of summoner id
+        """
+        erc721s = fetch_erc721(self.explorer_apikey, self.address)
+        if erc721s is None:
+            return []
+
+        summoner_ids = [
+            int(s['tokenID'])
+            for s in erc721s
+            if address.is_same_address(s['contractAddress'], self.rarity_address)
+        ]
+        return summoner_ids
+
+    def send_all_to_adventure(self, lvl_up=False) -> List[SummonerNextAdventure]:
+        """Send all summoners to adventure if possible
+
+        Args:
+            lvl_up (bool, optional): [lvl up summoner if possible]. Defaults to False.
+
+        Returns:
+            list of SummonerNextAdventure: [An array of SummonerNextAdventure type (summoner_id, remaining time until next adventure)]
+        """
+
+        remaining_times = []
+        for summoner in self.summoners:
+            remaining_times.append(
+                SummonerNextAdventure(
+                    id=summoner.summoner_id,
+                    remaining_time=summoner.adventure(lvl_up),
+                )
+            )
+
+        return remaining_times

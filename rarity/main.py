@@ -1,3 +1,4 @@
+from time import sleep
 from typing import List
 
 import typer
@@ -23,7 +24,7 @@ def main(
     address: str = typer.Option(None, envvar='ADDRESS'),
     private_key: str = typer.Option(None, envvar='PRIVATE_KEY'),
     rarity_address: str = typer.Option(RARITY_ADRRESS, envvar='RARITY_ADRRESS'),
-    summoners: List[int] = typer.Option(None, envvar='SUMMONERS'),
+    summoner: List[int] = typer.Option(None, envvar='SUMMONERS'),
     web3_rpc: str = typer.Option(WEB3_RPC, envvar='WEB3_RPC'),
     max_retries: str = typer.Option(MAX_RETRIES, envvar='MAX_RETRIES'),
     update_every_seconds: str = typer.Option(
@@ -41,7 +42,7 @@ def main(
         private_key=private_key,
         address=address,
         rarity_address=rarity_address,
-        summoners=summoners,
+        summoners=summoner,
         max_retries=max_retries,
         update_every_seconds=update_every_seconds,
         sleep_before_continue=sleep_before_continue,
@@ -52,4 +53,6 @@ def main(
 
 @app.command()
 def adventure(lvlup: bool = typer.Option(True, envvar='LVLUP')):
-    rarity.send_all_to_adventure(lvl_up=lvlup)
+    while True:
+        remaining_times = rarity.send_all_to_adventure(lvl_up=lvlup)
+        sleep(min([*[x.remaining_time for x in remaining_times], UPDATE_EVERY_SECONDS]))

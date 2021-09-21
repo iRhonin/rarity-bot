@@ -21,8 +21,7 @@ class Summoner:
         self,
         private_key,
         address,
-        rarity_address,
-        abi,
+        contract,
         summoner_id,
         web3_rpc=WEB3_RPC,
         max_retries=MAX_RETRIES,
@@ -33,8 +32,7 @@ class Summoner:
         self.web3 = Web3(Web3.HTTPProvider(web3_rpc))
         self.private_key = private_key
         self.address = Web3.toChecksumAddress(address)
-        self.rarity_address = Web3.toChecksumAddress(rarity_address)
-        self.contract = self.web3.eth.contract(address=self.rarity_address, abi=abi)
+        self.contract = contract
         self.summoner_id = summoner_id
         self.max_retries = max_retries
         self.update_every_seconds = update_every_seconds
@@ -85,9 +83,6 @@ class Summoner:
             return tx_hash
         except web3.exceptions.ContractLogicError:
             return
-
-    def safe_submit_txn(self, txn, sleep_for=1):
-        pass
 
     def adventure(self, lvl_up=False):
         while self.remaining_time() <= 0:

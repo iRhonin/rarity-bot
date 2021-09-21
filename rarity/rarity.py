@@ -1,4 +1,5 @@
 from typing import List
+from typing import Type
 
 from eth_utils import address
 from web3.main import Web3
@@ -13,7 +14,10 @@ from rarity.constants import UPDATE_EVERY_SECONDS
 from rarity.constants import WEB3_RPC
 from rarity.summoner import Summoner
 from rarity.types import SummonerNextAdventure
+from rarity.types import SummonerType
 from rarity.utils import fetch_erc721
+from rarity.utils import nonce
+from rarity.utils import sign_and_send_txn
 
 
 class Rarity:
@@ -37,6 +41,7 @@ class Rarity:
         self.private_key = private_key
         self.address = Web3.toChecksumAddress(address)
         self.rarity_address = Web3.toChecksumAddress(rarity_address)
+        self.contract = self.web3.eth.contract(address=self.rarity_address, abi=abi)
         self.abi = abi
         self.max_retries = max_retries
         self.update_every_seconds = update_every_seconds
@@ -103,3 +108,20 @@ class Rarity:
             )
 
         return remaining_times
+
+    def summon(self, type_: SummonerType):
+        """Summon a summoner
+
+        Args:
+            type_ (SummonerType): Type of summoner
+
+        Returns:
+            str: Hash of summon tx
+        """
+        txn = self.contract.functions.summon(type_).buildTransaction(
+            {
+                'nonce': nonce(self.web3, self.address),
+                'from': self.address,
+            }
+        )
+        return sign_and_send_txn(self.web3, txn, self.private_key)

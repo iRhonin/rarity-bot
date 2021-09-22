@@ -36,6 +36,7 @@ class Rarity:
         explorer_apikey=EXPLORER_APIKEY,
     ):
         self.web3_rpc = web3_rpc
+        self.web3 = Web3(Web3.HTTPProvider(web3_rpc))
         self.summoners_thread_list = []
         self.summoners = []
         self.private_key = private_key
@@ -65,8 +66,7 @@ class Rarity:
                 web3_rpc=self.web3_rpc,
                 private_key=self.private_key,
                 address=self.address,
-                rarity_address=self.rarity_address,
-                abi=self.abi,
+                contract=self.contract,
                 summoner_id=summoner_id,
             )
             self.summoners.append(summoner)

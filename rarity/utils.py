@@ -103,9 +103,9 @@ def wait_for_confirmation(web3, tx_hash, timeout=60, delay=5) -> int:
         int: block number
 
     """
-    deadline = datetime.utcnow().timestamp + timeout
+    deadline = datetime.utcnow().timestamp() + timeout
 
-    while datetime.utcnow().timestamp <= deadline:
+    while datetime.utcnow().timestamp() <= deadline:
         tx = web3.eth.getTransaction(tx_hash)
         if tx and tx['blockNumber'] is not None:
             return tx['blockNumber']

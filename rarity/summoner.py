@@ -8,12 +8,14 @@ from rarity.constants import COLORS
 from rarity.constants import EXPLORER
 from rarity.constants import MAX_RETRIES
 from rarity.constants import SLEEP_BEFORE_CONTINUE
-from rarity.constants import UPDATE_EVERY_SECONDS
 from rarity.constants import WEB3_RPC
 from rarity.utils import format_timedelta
 from rarity.utils import nonce
+from rarity.utils import retry
+from rarity.utils import retry_call
 from rarity.utils import sign_and_send_txn
 from rarity.utils import tx_explorer_link
+from rarity.utils import wait_for_confirmation
 
 
 class Summoner:
@@ -25,7 +27,6 @@ class Summoner:
         summoner_id,
         web3_rpc=WEB3_RPC,
         max_retries=MAX_RETRIES,
-        update_every_seconds=UPDATE_EVERY_SECONDS,
         sleep_before_continue=SLEEP_BEFORE_CONTINUE,
         explorer=EXPLORER,
     ):
@@ -35,16 +36,33 @@ class Summoner:
         self.contract = contract
         self.summoner_id = summoner_id
         self.max_retries = max_retries
-        self.update_every_seconds = update_every_seconds
         self.sleep_before_continue = sleep_before_continue
         self.explorer = explorer
+
+    def _retry_call(self, f, *args, **kwargs):
+        return retry_call(
+            f,
+            *args,
+            **kwargs,
+            _retries=self.max_retries,
+            _delay=self.sleep_before_continue,
+        )
+
+    def nonce(self):
+        return self._retry_call(
+            nonce,
+            self.web3,
+            self.address,
+        )
 
     def log(self, msg):
         color = COLORS[self.summoner_id % len(COLORS)]
         print(f'{color}Summoner #{self.summoner_id}: {msg}')
 
     def next_adventure_in(self):
-        return self.contract.functions.adventurers_log(self.summoner_id).call()
+        return self._retry_call(
+            self.contract.functions.adventurers_log(self.summoner_id).call,
+        )
 
     def remaining_time(self):
         next_adventure = self.next_adventure_in()
@@ -52,7 +70,8 @@ class Summoner:
         return timedelta.total_seconds()
 
     def data(self):
-        result = self.contract.functions.summoner(self.summoner_id).call()
+        result = self._retry_call(self.contract.functions.summoner(self.summoner_id).call)
+
         data = dict(
             xp=result[0],
             log=result[1],
@@ -66,8 +85,14 @@ class Summoner:
         try:
             adventure_txn = self.contract.functions.adventure(
                 self.summoner_id
-            ).buildTransaction({'nonce': nonce(self.web3, self.address)})
-            tx_hash = sign_and_send_txn(self.web3, adventure_txn, self.private_key)
+            ).buildTransaction({'nonce': self.nonce()})
+            tx_hash = self._retry_call(
+                sign_and_send_txn,
+                self.web3,
+                adventure_txn,
+                self.private_key,
+                _excluded=web3.exceptions.ContractLogicError,
+            )
             self.log(f'Going to adventure! {tx_explorer_link(self.explorer, tx_hash)}')
             return tx_hash
         except web3.exceptions.ContractLogicError:
@@ -77,8 +102,14 @@ class Summoner:
         try:
             lvlup_txn = self.contract.functions.level_up(
                 self.summoner_id
-            ).buildTransaction({'nonce': nonce(self.web3, self.address)})
-            tx_hash = sign_and_send_txn(self.web3, lvlup_txn, self.private_key)
+            ).buildTransaction({'nonce': self.nonce()})
+            tx_hash = self._retry_call(
+                sign_and_send_txn,
+                self.web3,
+                lvlup_txn,
+                self.private_key,
+                _excluded=web3.exceptions.ContractLogicError,
+            )
             self.log(f'Leveling UP! {tx_explorer_link(self.explorer, tx_hash)}')
             return tx_hash
         except web3.exceptions.ContractLogicError:
@@ -92,14 +123,18 @@ class Summoner:
             except Exception as ex:
                 print(ex)
             finally:
-                for _ in range(self.max_retries):
-                    sleep(self.sleep_before_continue)
-                    tx = self.web3.eth.getTransaction(tx_hash)
-                    if tx and tx['blockNumber'] is not None:
-                        self.log(f'Did an adventure!')
-                        self.data()
-                        break
-                else:
+                try:
+                    self._retry_call(
+                        wait_for_confirmation,
+                        web3=self.web3,
+                        tx_hash=tx_hash,
+                        timeout=self.max_retries * self.sleep_before_continue,
+                        delay=self.sleep_before_continue,
+                        _excluded=TimeoutError,
+                    )
+                    self.log(f'Did an adventure!')
+                    self.data()
+                except TimeoutError:
                     self.log(
                         f'Adventure TX take too long to confirm! {tx_explorer_link(self.explorer, tx_hash)}'
                     )
@@ -107,13 +142,17 @@ class Summoner:
         if lvl_up:
             lvlup_tx_hash = self.lvl_up()
             if lvlup_tx_hash is not None:
-                for _ in range(self.max_retries):
-                    sleep(self.sleep_before_continue)
-                    lvlup_tx = self.web3.eth.getTransaction(lvlup_tx_hash)
-                    if lvlup_tx and lvlup_tx['blockNumber'] is not None:
-                        self.data()
-                        break
-                else:
+                try:
+                    self._retry_call(
+                        wait_for_confirmation,
+                        web3=self.web3,
+                        tx_hash=lvlup_tx_hash,
+                        timeout=self.max_retries * self.sleep_before_continue,
+                        delay=self.sleep_before_continue,
+                        _excluded=TimeoutError,
+                    )
+                    self.data()
+                except TimeoutError:
                     self.log(
                         f'Level-up TX take too long to confirm! {tx_explorer_link(self.explorer, lvlup_tx_hash)}'
                     )

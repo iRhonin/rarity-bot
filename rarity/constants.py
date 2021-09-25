@@ -4,7 +4,7 @@ EXPLORER = 'https://ftmscan.com/'
 SLEEP_BEFORE_CONTINUE = 5
 UPDATE_EVERY_SECONDS = 30 * 60
 EXPLORER_APIKEY = 'SF7K5UN374SAQ6H2YCFA8MQMRAN58DNFEM'
-MAX_RETRIES = 10
+MAX_RETRIES = 5
 FTMSCAN_ERC721_URL = 'https://api.ftmscan.com/api?module=account&action=tokennfttx&address=%s&startblock=0&endblock=999999999&sort=asc&apikey=%s'
 
 COLORS = [

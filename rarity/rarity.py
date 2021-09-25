@@ -17,6 +17,8 @@ from rarity.types import SummonerNextAdventure
 from rarity.types import SummonerType
 from rarity.utils import fetch_erc721
 from rarity.utils import nonce
+from rarity.utils import retry
+from rarity.utils import retry_call
 from rarity.utils import sign_and_send_txn
 
 
@@ -44,9 +46,9 @@ class Rarity:
         self.rarity_address = Web3.toChecksumAddress(rarity_address)
         self.contract = self.web3.eth.contract(address=self.rarity_address, abi=abi)
         self.abi = abi
-        self.max_retries = max_retries
-        self.update_every_seconds = update_every_seconds
-        self.sleep_before_continue = sleep_before_continue
+        self.max_retries = int(max_retries)
+        self.update_every_seconds = int(update_every_seconds)
+        self.sleep_before_continue = int(sleep_before_continue)
         self.explorer = explorer
         self.explorer_apikey = explorer_apikey
         self.remaining_times = {}
@@ -71,13 +73,34 @@ class Rarity:
             )
             self.summoners.append(summoner)
 
+    def _retry_call(self, f, *args, **kwargs):
+        return retry_call(
+            f,
+            *args,
+            **kwargs,
+            _retries=self.max_retries,
+            _delay=self.sleep_before_continue,
+        )
+
+    def nonce(self):
+        return self._retry_call(
+            nonce,
+            self.web3,
+            self.address,
+        )
+
     def fetch_summoners(self):
         """Fetch Rarity summoners from explorer
 
         Returns:
             [Sumomoner Ids]: An array of summoner id
         """
-        erc721s = fetch_erc721(self.explorer_apikey, self.address)
+
+        erc721s = self._retry_call(
+            fetch_erc721,
+            self.explorer_apikey,
+            self.address,
+        )
         if erc721s is None:
             return []
 
@@ -120,8 +143,8 @@ class Rarity:
         """
         txn = self.contract.functions.summon(type_).buildTransaction(
             {
-                'nonce': nonce(self.web3, self.address),
+                'nonce': self.nonce(),
                 'from': self.address,
             }
         )
-        return sign_and_send_txn(self.web3, txn, self.private_key)
+        return self._retry_call(sign_and_send_txn, self.web3, txn, self.private_key)

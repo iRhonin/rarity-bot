@@ -39,23 +39,31 @@ This bot will can do advanture for all of your `Rarity Summonners` as soon as po
 
 To send all of your summoners to advanture:
 
-`rarity adventure`
+```
+rarity adventure
+```
 
 Or only selected ones (If your summoners are 1234 and 4321):
 
-`rarity --summoner 1234 --summoner 4321 adventure`
+```
+rarity --summoner 1234 --summoner 4321 adventure
+```
 
 ---
 
 If you want to disable automatic level-up, use `--no-lvlup` like this:
 
-`rarity adventure --no-lvlup`
+```
+rarity adventure --no-lvlup
+```
 
 ---
 
 To see all options:
 
-`rarity --help`
+```
+rarity --help
+```
 
 ---
 

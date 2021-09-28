@@ -82,67 +82,50 @@ class Summoner:
         return data
 
     def do_adventure(self):
-        try:
-            adventure_txn = self.contract.functions.adventure(
-                self.summoner_id
-            ).buildTransaction({'nonce': self.nonce()})
-            tx_hash = self._retry_call(
-                sign_and_send_txn,
-                self.web3,
-                adventure_txn,
-                self.private_key,
-                _excluded=web3.exceptions.ContractLogicError,
-            )
-            self.log(f'Going to adventure! {tx_explorer_link(self.explorer, tx_hash)}')
-            return tx_hash
-        except web3.exceptions.ContractLogicError:
-            self.log('Sleeping!')
+        adventure_txn = self.contract.functions.adventure(
+            self.summoner_id,
+        ).buildTransaction({'nonce': self.nonce()})
+        tx_hash = self._retry_call(
+            sign_and_send_txn,
+            self.web3,
+            adventure_txn,
+            self.private_key,
+            _excluded=web3.exceptions.ContractLogicError,
+        )
+        self.log(f'Going to adventure! {tx_explorer_link(self.explorer, tx_hash)}')
+        return tx_hash
 
     def lvl_up(self):
-        try:
-            lvlup_txn = self.contract.functions.level_up(
-                self.summoner_id
-            ).buildTransaction({'nonce': self.nonce()})
-            tx_hash = self._retry_call(
-                sign_and_send_txn,
-                self.web3,
-                lvlup_txn,
-                self.private_key,
-                _excluded=web3.exceptions.ContractLogicError,
-            )
-            self.log(f'Leveling UP! {tx_explorer_link(self.explorer, tx_hash)}')
-            return tx_hash
-        except web3.exceptions.ContractLogicError:
-            return
+        lvlup_txn = self.contract.functions.level_up(
+            self.summoner_id,
+        ).buildTransaction({'nonce': self.nonce()})
+        tx_hash = self._retry_call(
+            sign_and_send_txn,
+            self.web3,
+            lvlup_txn,
+            self.private_key,
+            _excluded=web3.exceptions.ContractLogicError,
+        )
+        self.log(f'Leveling UP! {tx_explorer_link(self.explorer, tx_hash)}')
+        return tx_hash
 
     def adventure(self, lvl_up=False):
         while self.remaining_time() <= 0:
-            tx_hash = None
             try:
                 tx_hash = self.do_adventure()
-            except Exception as ex:
-                print(ex)
-            finally:
-                try:
-                    self._retry_call(
-                        wait_for_confirmation,
-                        web3=self.web3,
-                        tx_hash=tx_hash,
-                        timeout=self.max_retries * self.sleep_before_continue,
-                        delay=self.sleep_before_continue,
-                        _excluded=TimeoutError,
-                    )
-                    self.log(f'Did an adventure!')
-                    self.data()
-                except TimeoutError:
-                    self.log(
-                        f'Adventure TX take too long to confirm! {tx_explorer_link(self.explorer, tx_hash)}'
-                    )
+                self._retry_call(
+                    wait_for_confirmation,
+                    web3=self.web3,
+                    tx_hash=tx_hash,
+                    timeout=self.max_retries * self.sleep_before_continue,
+                    delay=self.sleep_before_continue,
+                    _excluded=TimeoutError,
+                )
+                self.log(f'Did an adventure!')
+                self.data()
 
-        if lvl_up:
-            lvlup_tx_hash = self.lvl_up()
-            if lvlup_tx_hash is not None:
-                try:
+                if lvl_up:
+                    lvlup_tx_hash = self.lvl_up()
                     self._retry_call(
                         wait_for_confirmation,
                         web3=self.web3,
@@ -152,10 +135,8 @@ class Summoner:
                         _excluded=TimeoutError,
                     )
                     self.data()
-                except TimeoutError:
-                    self.log(
-                        f'Level-up TX take too long to confirm! {tx_explorer_link(self.explorer, lvlup_tx_hash)}'
-                    )
+            except Exception as ex:
+                print(ex)
 
         remaining_time = self.remaining_time()
         formated_remaining_time = format_timedelta(remaining_time)

@@ -5,6 +5,7 @@ import web3
 from web3.main import Web3
 
 from rarity.constants import COLORS
+from rarity.constants import DEFAULT_GAS_LIMIT
 from rarity.constants import EXPLORER
 from rarity.constants import MAX_RETRIES
 from rarity.constants import SLEEP_BEFORE_CONTINUE
@@ -82,9 +83,12 @@ class Summoner:
         return data
 
     def do_adventure(self):
+        # Setting gas manualy when web3 fails to estimate gas
+        # https://github.com/iRhonin/rarity-bot/issues/2
         adventure_txn = self.contract.functions.adventure(
             self.summoner_id,
-        ).buildTransaction({'nonce': self.nonce()})
+        ).buildTransaction({'gas': DEFAULT_GAS_LIMIT, 'nonce': self.nonce()})
+
         tx_hash = self._retry_call(
             sign_and_send_txn,
             self.web3,
@@ -98,7 +102,8 @@ class Summoner:
     def lvl_up(self):
         lvlup_txn = self.contract.functions.level_up(
             self.summoner_id,
-        ).buildTransaction({'nonce': self.nonce()})
+        ).buildTransaction({'gas': DEFAULT_GAS_LIMIT, 'nonce': self.nonce()})
+
         tx_hash = self._retry_call(
             sign_and_send_txn,
             self.web3,
